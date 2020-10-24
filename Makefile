@@ -24,6 +24,28 @@ image: ## Build the docker image
 		--tag $(IMAGE) \
 		$(CWD)
 
+.PHONY: test
+test: ## Test the docker image
+test: image
+	@make --no-print-directory execute-test \
+		TEST_ARGS="--no-map --use autoprefixer" \
+		TEST_NAME=one
+	@make --no-print-directory execute-test \
+		TEST_ARGS="--no-map --use autoprefixer --use cssnano" \
+		TEST_NAME=two
+
+TEST_ARGS ?=
+TEST_INPUT ?= test.css
+TEST_NAME ?=
+.PHONY: execute-test
+execute-test:
+	@echo "testing $(TEST_NAME)..."
+	@docker run --rm -t \
+		-v $(CWD):$(CWD) \
+		-w $(CWD) sndsgd/postcss \
+		$(TEST_ARGS) --output - tests/$(TEST_INPUT) \
+		| diff --ignore-trailing-space tests/expect.$(TEST_NAME).css -
+
 .PHONY: push
 push: ## Push the docker image
 push: image
