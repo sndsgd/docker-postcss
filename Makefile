@@ -33,11 +33,6 @@ push: image
 .PHONY: run-help
 run-help: ## Run `postcss --help`
 run-help: image
-	docker run --rm $(IMAGE) --help
-
-.PHONY: run-version
-run-version: ## Run `postcss --version`
-run-version: image
-	docker run --rm $(IMAGE) --version
+	@docker run --rm $(IMAGE) --help
 
 .DEFAULT_GOAL := help
