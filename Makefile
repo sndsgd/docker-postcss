@@ -43,6 +43,6 @@ update:
 	@echo -e "current ~$(POSTCSS_VERSION)\nlatest~$(NEW_POSTCSS_VERSION)" \
 		| column -s "~" -t
 	@sed -i 's/^POSTCSS_VERSION ?=.*$$/POSTCSS_VERSION ?= $(NEW_POSTCSS_VERSION)/' ./Makefile
-	git diff-index --quiet HEAD || make --no-print-directory image IMAGE_ARGS=
+	@git diff-index HEAD || make --no-print-directory image IMAGE_ARGS=
 
 .DEFAULT_GOAL := help
