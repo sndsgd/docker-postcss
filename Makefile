@@ -1,29 +1,44 @@
 CWD := $(shell pwd)
 
-NODE_VERSION ?= 12.18.3-r0
-POSTCSS_VERSION ?= 7.0.32
+BUILD_ARGS ?= --quiet
+
+NODE_VERSION ?= 12.18.4-r0
+POSTCSS_VERSION ?= 8.1.4
 
 IMAGE_NAME ?= sndsgd/postcss
 IMAGE := $(IMAGE_NAME):$(POSTCSS_VERSION)
 
-.PHONY: build-image
-build-image:
-	docker build \
+.PHONY: help
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+	| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[33m%s\033[0m~%s\n", $$1, $$2}' \
+	| column -s "~" -t
+
+.PHONY: image
+image: ## Build the docker image
+	@echo "building image..."
+	@docker build \
+	  $(BUILD_ARGS) \
 		--build-arg NODE_VERSION=$(NODE_VERSION) \
 		--build-arg POSTCSS_VERSION=$(POSTCSS_VERSION) \
 		--tag $(IMAGE_NAME):latest \
 		--tag $(IMAGE) \
 		$(CWD)
 
-.PHONY: build
-build: build-image
+.PHONY: push
+push: ## Push the docker image
+push: image
 	docker push $(IMAGE)
 	docker push $(IMAGE_NAME):latest
 
-.PHONY: help
-help: build-image
+.PHONY: run-help
+run-help: ## Run `postcss --help`
+run-help: image
 	docker run --rm $(IMAGE) --help
 
-.PHONY: version
-version: build-image
+.PHONY: run-version
+run-version: ## Run `postcss --version`
+run-version: image
 	docker run --rm $(IMAGE) --version
+
+.DEFAULT_GOAL := help
