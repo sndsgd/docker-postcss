@@ -40,7 +40,7 @@ VERSION_PATTERN ?= '(?<="latest":")[^"]+(?=")'
 .PHONY: update
 update:
 	@$(eval NEW_POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN)))
-	@echo -e "current ~$(POSTCSS_VERSION)\nlatest~$(NEW_POSTCSS_VERSION)" \
+	@echo "current ~$(POSTCSS_VERSION)\nlatest~$(NEW_POSTCSS_VERSION)" \
 		| column -s "~" -t
 	@sed -i 's/^POSTCSS_VERSION ?=.*$$/POSTCSS_VERSION ?= $(NEW_POSTCSS_VERSION)/' ./Makefile
 	@git diff && git diff-index --quiet HEAD || make --no-print-directory image IMAGE_ARGS=
