@@ -1,4 +1,3 @@
-SHELL := /bin/bash
 CWD := $(shell pwd)
 
 NODE_VERSION ?= 12.18.4-r0
@@ -45,6 +44,5 @@ update:
 		| column -s "~" -t
 	@sed -i 's/^POSTCSS_VERSION ?=.*$$/POSTCSS_VERSION ?= $(NEW_POSTCSS_VERSION)/' ./Makefile
 	git diff-index --quiet HEAD || make --no-print-directory image IMAGE_ARGS=
-
 
 .DEFAULT_GOAL := help
