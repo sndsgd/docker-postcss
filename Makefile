@@ -1,7 +1,5 @@
 CWD := $(shell pwd)
 
-BUILD_ARGS ?= --quiet
-
 NODE_VERSION ?= 12.18.4-r0
 POSTCSS_VERSION ?= 8.1.4
 
@@ -14,11 +12,12 @@ help:
 	| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[33m%s\033[0m~%s\n", $$1, $$2}' \
 	| column -s "~" -t
 
+IMAGE_ARGS ?= --quiet
 .PHONY: image
 image: ## Build the docker image
 	@echo "building image..."
 	@docker build \
-	  $(BUILD_ARGS) \
+	  $(IMAGE_ARGS) \
 		--build-arg NODE_VERSION=$(NODE_VERSION) \
 		--build-arg POSTCSS_VERSION=$(POSTCSS_VERSION) \
 		--tag $(IMAGE_NAME):latest \
