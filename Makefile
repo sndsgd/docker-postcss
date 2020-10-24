@@ -1,7 +1,7 @@
 CWD := $(shell pwd)
 
 NODE_VERSION ?= 12.18.4-r0
-POSTCSS_VERSION ?= 8.1.4
+POSTCSS_VERSION ?= 8.1.2
 
 IMAGE_NAME ?= sndsgd/postcss
 IMAGE := $(IMAGE_NAME):$(POSTCSS_VERSION)
