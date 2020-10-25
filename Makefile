@@ -48,7 +48,7 @@ execute-test:
 
 .PHONY: push
 push: ## Push the docker image
-push: image
+push: test
 	docker push $(IMAGE)
 	docker push $(IMAGE_NAME):latest
 
@@ -65,6 +65,6 @@ update:
 	@echo "current ~$(POSTCSS_VERSION)\nlatest~$(NEW_POSTCSS_VERSION)" \
 		| column -s "~" -t
 	@sed -i 's/^POSTCSS_VERSION ?=.*$$/POSTCSS_VERSION ?= $(NEW_POSTCSS_VERSION)/' ./Makefile
-	@git diff && git diff-index --quiet HEAD || make --no-print-directory image IMAGE_ARGS=
+	@git diff && git diff-index --quiet HEAD || make --no-print-directory push IMAGE_ARGS=--no-cache
 
 .DEFAULT_GOAL := help
