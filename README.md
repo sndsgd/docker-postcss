@@ -8,7 +8,7 @@ A docker image with [postcss](https://postcss.org/) and a few plugins that I use
 If you want to build the image locally, you can follow these steps:
 
 1. Checkout this repo
-1. Run `make build-image`
+1. Run `make image`
 
 
 ### Usage
