@@ -24,9 +24,31 @@ image: ## Build the docker image
 		--tag $(IMAGE) \
 		$(CWD)
 
+.PHONY: test
+test: ## Test the docker image
+test: image
+	@make --no-print-directory execute-test \
+		TEST_ARGS="--no-map --use autoprefixer" \
+		TEST_NAME=one
+	@make --no-print-directory execute-test \
+		TEST_ARGS="--no-map --use autoprefixer --use cssnano" \
+		TEST_NAME=two
+
+TEST_ARGS ?=
+TEST_INPUT ?= test.css
+TEST_NAME ?=
+.PHONY: execute-test
+execute-test:
+	@echo "testing $(TEST_NAME)..."
+	@docker run --rm -t \
+		-v $(CWD):$(CWD) \
+		-w $(CWD) sndsgd/postcss \
+		$(TEST_ARGS) --output - tests/$(TEST_INPUT) \
+		| diff --ignore-trailing-space tests/expect.$(TEST_NAME).css -
+
 .PHONY: push
 push: ## Push the docker image
-push: image
+push: test
 	docker push $(IMAGE)
 	docker push $(IMAGE_NAME):latest
 
@@ -34,5 +56,15 @@ push: image
 run-help: ## Run `postcss --help`
 run-help: image
 	@docker run --rm $(IMAGE) --help
+
+VERSION_URL ?= https://www.npmjs.com/package/postcss
+VERSION_PATTERN ?= '(?<="latest":")[^"]+(?=")'
+.PHONY: update
+update:
+	@$(eval NEW_POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN)))
+	@echo "current ~$(POSTCSS_VERSION)\nlatest~$(NEW_POSTCSS_VERSION)" \
+		| column -s "~" -t
+	@sed -i 's/^POSTCSS_VERSION ?=.*$$/POSTCSS_VERSION ?= $(NEW_POSTCSS_VERSION)/' ./Makefile
+	@git diff && git diff-index --quiet HEAD || make --no-print-directory push IMAGE_ARGS=--no-cache
 
 .DEFAULT_GOAL := help
