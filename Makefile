@@ -1,7 +1,13 @@
 CWD := $(shell pwd)
 
 NODE_VERSION ?= 12.18.4-r0
-POSTCSS_VERSION ?= 8.1.4
+POSTCSS_VERSION ?=
+
+VERSION_URL ?= https://www.npmjs.com/package/postcss
+VERSION_PATTERN ?= '(?<="latest":")[^"]+(?=")'
+ifndef (POSTCSS_VERSION)
+	POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN))
+endif
 
 IMAGE_NAME ?= sndsgd/postcss
 IMAGE := $(IMAGE_NAME):$(POSTCSS_VERSION)
@@ -15,7 +21,7 @@ help:
 IMAGE_ARGS ?= --quiet
 .PHONY: image
 image: ## Build the docker image
-	@echo "building image..."
+	@echo "building image for postcss v$(POSTCSS_VERSION)..."
 	@docker build \
 	  $(IMAGE_ARGS) \
 		--build-arg NODE_VERSION=$(NODE_VERSION) \
@@ -51,6 +57,12 @@ push: ## Push the docker image
 push: test
 	docker push $(IMAGE)
 	docker push $(IMAGE_NAME):latest
+
+IMAGE_CHECK_URL = https://index.docker.io/v1/repositories/$(IMAGE_NAME)/tags/$(POSTCSS_VERSION)
+.PHONY: push-cron
+push-cron: ## Build and push an image if the version does not exist
+	curl --silent -f -lSL $(IMAGE_CHECK_URL) > /dev/null \
+	  || make --no-print-directory push IMAGE_ARGS=--no-cache
 
 .PHONY: run-help
 run-help: ## Run `postcss --help`
