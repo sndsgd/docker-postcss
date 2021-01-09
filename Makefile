@@ -1,6 +1,6 @@
 CWD := $(shell pwd)
 
-NODE_VERSION ?= 12.18.4-r0
+NODE_VERSION ?= 12.20.1-r0
 POSTCSS_VERSION ?=
 
 VERSION_URL ?= https://www.npmjs.com/package/postcss
