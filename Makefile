@@ -69,14 +69,4 @@ run-help: ## Run `postcss --help`
 run-help: image
 	@docker run --rm $(IMAGE) --help
 
-VERSION_URL ?= https://www.npmjs.com/package/postcss
-VERSION_PATTERN ?= '(?<="latest":")[^"]+(?=")'
-.PHONY: update
-update:
-	@$(eval NEW_POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN)))
-	@echo "current ~$(POSTCSS_VERSION)\nlatest~$(NEW_POSTCSS_VERSION)" \
-		| column -s "~" -t
-	@sed -i 's/^POSTCSS_VERSION ?=.*$$/POSTCSS_VERSION ?= $(NEW_POSTCSS_VERSION)/' ./Makefile
-	@git diff && git diff-index --quiet HEAD || make --no-print-directory push IMAGE_ARGS=--no-cache
-
 .DEFAULT_GOAL := help
