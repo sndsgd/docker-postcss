@@ -3,14 +3,7 @@ CWD := $(shell pwd)
 NODE_VERSION ?= 12.20.1-r0
 POSTCSS_VERSION ?=
 
-VERSION_URL ?= https://www.npmjs.com/package/postcss
-VERSION_PATTERN ?= '(?<="latest":")[^"]+(?=")'
-ifndef (POSTCSS_VERSION)
-	POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN))
-endif
-
 IMAGE_NAME ?= sndsgd/postcss
-IMAGE := $(IMAGE_NAME):$(POSTCSS_VERSION)
 
 .PHONY: help
 help:
@@ -18,10 +11,21 @@ help:
 	| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[33m%s\033[0m~%s\n", $$1, $$2}' \
 	| column -s "~" -t
 
+VERSION_URL ?= https://www.npmjs.com/package/postcss
+VERSION_PATTERN ?= '(?<="latest":")[^"]+(?=")'
+.PHONY: ensure-version
+ensure-version:
+ifeq ($(POSTCSS_VERSION),)
+	$(info fetching latest version...)
+	@$(eval POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN)))
+endif
+	@$(eval IMAGE := $(IMAGE_NAME):$(POSTCSS_VERSION))
+
 IMAGE_ARGS ?= --quiet
 .PHONY: image
 image: ## Build the docker image
-	@echo "building image for postcss v$(POSTCSS_VERSION)..."
+image: ensure-version
+	$(info building image for postcss v$(POSTCSS_VERSION)...)
 	@docker build \
 	  $(IMAGE_ARGS) \
 		--build-arg NODE_VERSION=$(NODE_VERSION) \
@@ -34,9 +38,11 @@ image: ## Build the docker image
 test: ## Test the docker image
 test: image
 	@make --no-print-directory execute-test \
+		POSTCSS_VERSION=$(POSTCSS_VERSION) \
 		TEST_ARGS="--no-map --use autoprefixer" \
 		TEST_NAME=one
 	@make --no-print-directory execute-test \
+		POSTCSS_VERSION=$(POSTCSS_VERSION) \
 		TEST_ARGS="--no-map --use autoprefixer --use cssnano" \
 		TEST_NAME=two
 
@@ -44,11 +50,11 @@ TEST_ARGS ?=
 TEST_INPUT ?= test.css
 TEST_NAME ?=
 .PHONY: execute-test
-execute-test:
-	@echo "testing $(TEST_NAME)..."
+execute-test: ensure-version
+	$(info testing $(TEST_NAME)...)
 	@docker run --rm -t \
 		-v $(CWD):$(CWD) \
-		-w $(CWD) sndsgd/postcss \
+		-w $(CWD) $(IMAGE) \
 		$(TEST_ARGS) --output - tests/$(TEST_INPUT) \
 		| diff --ignore-trailing-space tests/expect.$(TEST_NAME).css -
 
