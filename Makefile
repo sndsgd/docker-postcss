@@ -17,7 +17,7 @@ VERSION_PATTERN ?= '(?<="latest":")[^"]+(?=")'
 ensure-version:
 ifeq ($(POSTCSS_VERSION),)
 	$(info fetching latest version...)
-	@$(eval POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN)))
+	@$(eval POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN) | head -1))
 endif
 	@$(eval IMAGE := $(IMAGE_NAME):$(POSTCSS_VERSION))
 
