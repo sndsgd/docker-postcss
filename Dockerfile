@@ -1,4 +1,5 @@
-FROM alpine:3.12
+ARG ALPINE_VERSION
+FROM alpine:${ALPINE_VERSION}
 LABEL maintainer sndsgd
 
 ARG NODE_VERSION

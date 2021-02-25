@@ -1,6 +1,7 @@
 CWD := $(shell pwd)
 
-NODE_VERSION ?= 12.21.0-r0
+ALPINE_VERSION ?= 3.13
+NODE_VERSION ?=
 POSTCSS_VERSION ?=
 
 IMAGE_NAME ?= sndsgd/postcss
@@ -11,12 +12,21 @@ help:
 	| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[33m%s\033[0m~%s\n", $$1, $$2}' \
 	| column -s "~" -t
 
-VERSION_URL ?= https://www.npmjs.com/package/postcss
+NODE_VERSION_URL ?= 'https://pkgs.alpinelinux.org/packages?name=nodejs&branch=v$(ALPINE_VERSION)'
+NODE_VERSION_PATTERN ?= '(?<=<td class="version">)[^<]+(?=<)'
+.PHONY: ensure-node-version
+ensure-node-version:
+ifeq ($(NODE_VERSION),)
+	$(info fetching node package version...)
+	$(eval NODE_VERSION = $(shell curl -s $(NODE_VERSION_URL) | grep -Po $(NODE_VERSION_PATTERN) | head -1))
+endif
+
+VERSION_URL ?= 'https://www.npmjs.com/package/postcss'
 VERSION_PATTERN ?= '(?<="latest":")[^"]+(?=")'
 .PHONY: ensure-version
 ensure-version:
 ifeq ($(POSTCSS_VERSION),)
-	$(info fetching latest version...)
+	$(info fetching latest postcss version...)
 	@$(eval POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN) | head -1))
 endif
 	@$(eval IMAGE := $(IMAGE_NAME):$(POSTCSS_VERSION))
@@ -24,10 +34,11 @@ endif
 IMAGE_ARGS ?= --quiet
 .PHONY: image
 image: ## Build the docker image
-image: ensure-version
+image: ensure-node-version ensure-version
 	$(info building image for postcss v$(POSTCSS_VERSION)...)
 	@docker build \
-	  $(IMAGE_ARGS) \
+		$(IMAGE_ARGS) \
+		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg NODE_VERSION=$(NODE_VERSION) \
 		--build-arg POSTCSS_VERSION=$(POSTCSS_VERSION) \
 		--tag $(IMAGE_NAME):latest \
