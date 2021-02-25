@@ -1,6 +1,6 @@
 CWD := $(shell pwd)
 
-NODE_VERSION ?= 12.20.1-r0
+NODE_VERSION ?= 12.21.0-r0
 POSTCSS_VERSION ?=
 
 IMAGE_NAME ?= sndsgd/postcss
