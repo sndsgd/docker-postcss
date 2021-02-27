@@ -75,9 +75,10 @@ push: test
 	docker push $(IMAGE)
 	docker push $(IMAGE_NAME):latest
 
-IMAGE_CHECK_URL = https://index.docker.io/v1/repositories/$(IMAGE_NAME)/tags/$(POSTCSS_VERSION)
+IMAGE_CHECK_URL = https://hub.docker.com/v2/repositories/$(IMAGE_NAME)/tags/$(VERSION)
 .PHONY: push-cron
 push-cron: ## Build and push an image if the version does not exist
+push-cron: ensure-version
 	curl --silent -f -lSL $(IMAGE_CHECK_URL) > /dev/null \
 	  || make --no-print-directory push IMAGE_ARGS=--no-cache
 
