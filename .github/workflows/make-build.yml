@@ -1,8 +1,8 @@
-name: make-push-cron
+name: make-build
 
 on:
   schedule:
-  - cron: '42 */6 * * *'
+  - cron: '42 7 * * *'
 
 jobs:
   main:
