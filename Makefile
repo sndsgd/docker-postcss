@@ -4,7 +4,8 @@ ALPINE_VERSION ?= 3.13
 NODE_VERSION ?=
 POSTCSS_VERSION ?=
 
-IMAGE_NAME ?= sndsgd/postcss
+NAME ?= sndsgd/postcss
+IMAGE_NAME ?= ghcr.io/$(NAME)
 
 .PHONY: help
 help:
@@ -35,13 +36,12 @@ IMAGE_ARGS ?= --quiet
 .PHONY: image
 image: ## Build the docker image
 image: ensure-node-version ensure-version
-	$(info building image for postcss v$(POSTCSS_VERSION)...)
+	$(info building image for postcss v$(POSTCSS_VERSION) and node v$(NODE_VERSION)...)
 	@docker build \
 		$(IMAGE_ARGS) \
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg NODE_VERSION=$(NODE_VERSION) \
 		--build-arg POSTCSS_VERSION=$(POSTCSS_VERSION) \
-		--tag $(IMAGE_NAME):latest \
 		--tag $(IMAGE) \
 		$(CWD)
 
@@ -73,14 +73,19 @@ execute-test: ensure-version
 push: ## Push the docker image
 push: test
 	docker push $(IMAGE)
-	docker push $(IMAGE_NAME):latest
 
-IMAGE_CHECK_URL = https://hub.docker.com/v2/repositories/$(IMAGE_NAME)/tags/$(POSTCSS_VERSION)
 .PHONY: push-cron
 push-cron: ## Build and push an image if the version does not exist
-push-cron: ensure-version
-	curl --silent -f -lSL $(IMAGE_CHECK_URL) > /dev/null \
-	  || make --no-print-directory push IMAGE_ARGS=--no-cache
+push-cron: ensure-node-version ensure-version
+	@token_response="$$(curl --silent -f -lSL "https://ghcr.io/token?scope=repository:$(NAME):pull")"; \
+	token="$$(echo "$$token_response" | jq -r .token)"; \
+	json="$$(curl --silent -f -lSL -H "Authorization: Bearer $$token" https://ghcr.io/v2/$(NAME)/tags/list)"; \
+	index="$$(echo "$$json" | jq '.tags | index("$(POSTCSS_VERSION)")')"; \
+	if [ "$$index" = "null" ]; then \
+		make --no-print-directory push POSTCSS_VERSION=$(POSTCSS_VERSION) NODE_VERSION=$(NODE_VERSION) IMAGE_ARGS=--no-cache; \
+	else \
+		echo "image for '$(POSTCSS_VERSION)' already exists"; \
+	fi
 
 .PHONY: run-help
 run-help: ## Run `postcss --help`

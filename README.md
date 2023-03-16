@@ -14,11 +14,26 @@ If you want to build the image locally, you can follow these steps:
 ### Usage
 
 _dev build_
-
-    docker run --rm -v $(pwd):$(pwd) -w $(pwd) sndsgd/postcss \
-    --use autoprefixer --output output.css input.css
+```
+docker run --rm \
+  -u $(id -u):$(id -g) \
+  -v $(pwd):$(pwd) \
+  -w $(pwd) sndsgd/postcss \
+  --use autoprefixer \
+  --output output.css \
+  input.css
+```
 
 _production build_
-
-    docker run --rm -v $(pwd):$(pwd) -w $(pwd) sndsgd/postcss \
-    --no-map --use autoprefixer --use cssnano --output output.css input.css
+```
+docker run --rm \
+  -u $(id -u):$(id -g) \
+  -v "$(pwd)":"$(pwd)" \
+  -w "$(pwd)" \
+  sndsgd/postcss \
+  --no-map \
+  --use autoprefixer \
+  --use cssnano \
+  --output output.css \
+  input.css
+```
