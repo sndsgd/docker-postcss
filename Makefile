@@ -3,6 +3,7 @@ CWD := $(shell pwd)
 ALPINE_VERSION ?= 3.13
 NODE_VERSION ?=
 POSTCSS_VERSION ?=
+FETCHED_POSTCSS_VERSION ?=
 
 NAME ?= sndsgd/postcss
 IMAGE_NAME ?= ghcr.io/$(NAME)
@@ -29,6 +30,7 @@ ensure-version:
 ifeq ($(POSTCSS_VERSION),)
 	$(info fetching latest postcss version...)
 	@$(eval POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN) | head -1))
+	@$(eval FETCHED_POSTCSS_VERSION = $(POSTCSS_VERSION))
 endif
 	@$(eval IMAGE := $(IMAGE_NAME):$(POSTCSS_VERSION))
 
@@ -44,6 +46,9 @@ image: ensure-node-version ensure-version
 		--build-arg POSTCSS_VERSION=$(POSTCSS_VERSION) \
 		--tag $(IMAGE) \
 		$(CWD)
+ifeq ($(POSTCSS_VERSION),$(FETCHED_POSTCSS_VERSION))
+	@docker tag $(IMAGE) $(IMAGE_NAME):latest
+endif
 
 .PHONY: test
 test: ## Test the docker image
@@ -73,6 +78,9 @@ execute-test: ensure-version
 push: ## Push the docker image
 push: test
 	docker push $(IMAGE)
+ifeq ($(POSTCSS_VERSION),$(FETCHED_POSTCSS_VERSION))
+	docker push $(IMAGE_NAME):latest
+endif
 
 .PHONY: push-cron
 push-cron: ## Build and push an image if the version does not exist
@@ -82,7 +90,7 @@ push-cron: ensure-node-version ensure-version
 	json="$$(curl --silent -f -lSL -H "Authorization: Bearer $$token" https://ghcr.io/v2/$(NAME)/tags/list)"; \
 	index="$$(echo "$$json" | jq '.tags | index("$(POSTCSS_VERSION)")')"; \
 	if [ "$$index" = "null" ]; then \
-		make --no-print-directory push POSTCSS_VERSION=$(POSTCSS_VERSION) NODE_VERSION=$(NODE_VERSION) IMAGE_ARGS=--no-cache; \
+		make --no-print-directory push POSTCSS_VERSION=$(POSTCSS_VERSION) FETCHED_POSTCSS_VERSION=$(POSTCSS_VERSION) NODE_VERSION=$(NODE_VERSION) IMAGE_ARGS=--no-cache; \
 	else \
 		echo "image for '$(POSTCSS_VERSION)' already exists"; \
 	fi
