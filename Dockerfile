@@ -6,13 +6,11 @@ ARG NODE_VERSION
 ARG POSTCSS_VERSION
 
 RUN \
-  apk add --update --no-cache \
-    nodejs=${NODE_VERSION} \
-    nodejs-npm=${NODE_VERSION} \
+  apk add --update --no-cache nodejs=${NODE_VERSION} npm \
   && npm install -g \
     postcss@${POSTCSS_VERSION} \
     postcss-cli \
     autoprefixer \
     cssnano
 
-ENTRYPOINT ["/usr/bin/postcss"]
+ENTRYPOINT ["/usr/local/bin/postcss"]
