@@ -15,12 +15,13 @@ help:
 	| column -s "~" -t
 
 NODE_VERSION_URL ?= 'https://pkgs.alpinelinux.org/packages?name=nodejs&branch=v$(ALPINE_VERSION)'
-NODE_VERSION_PATTERN ?= '(?<=<td class="version">)[^<]+(?=<)'
+NODE_VERSION_PATTERN='(?<=aria-label="Package version">)[^<]+(?=</strong>)'
 .PHONY: ensure-node-version
 ensure-node-version:
 ifeq ($(NODE_VERSION),)
 	$(info fetching node package version...)
 	$(eval NODE_VERSION = $(shell curl -s $(NODE_VERSION_URL) | grep -Po $(NODE_VERSION_PATTERN) | head -1))
+	@echo "found version $(NODE_VERSION)"
 endif
 
 VERSION_URL ?= 'https://www.npmjs.com/package/postcss'
@@ -31,6 +32,7 @@ ifeq ($(POSTCSS_VERSION),)
 	$(info fetching latest postcss version...)
 	@$(eval POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN) | head -1))
 	@$(eval FETCHED_POSTCSS_VERSION = $(POSTCSS_VERSION))
+	@echo "found postcss version $(POSTCSS_VERSION)"
 endif
 	@$(eval IMAGE := $(IMAGE_NAME):$(POSTCSS_VERSION))
 
