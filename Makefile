@@ -24,17 +24,17 @@ ifeq ($(NODE_VERSION),)
 	@echo "found version $(NODE_VERSION)"
 endif
 
-VERSION_URL ?= 'https://www.npmjs.com/package/postcss'
-VERSION_PATTERN ?= '(?<="latest":")[^"]+(?=")'
+VERSION_URL ?= https://api.github.com/repos/postcss/postcss/releases/latest
 .PHONY: ensure-version
 ensure-version:
 ifeq ($(POSTCSS_VERSION),)
-	$(info fetching latest postcss version...)
-	@$(eval POSTCSS_VERSION = $(shell curl -s $(VERSION_URL) | grep -Po $(VERSION_PATTERN) | head -1))
+	@$(info fetching latest version...)
+	@$(eval POSTCSS_VERSION = $(shell curl -fsSL -H "Accept: application/vnd.github+json" $(VERSION_URL) | jq -r .tag_name | sed 's/^v//'))
 	@$(eval FETCHED_POSTCSS_VERSION = $(POSTCSS_VERSION))
 	@echo "found postcss version $(POSTCSS_VERSION)"
 endif
 	@$(eval IMAGE := $(IMAGE_NAME):$(POSTCSS_VERSION))
+
 
 IMAGE_ARGS ?= --quiet
 .PHONY: image
