@@ -1,8 +1,9 @@
-name: make-build
+name: make-push-cron
 
 on:
+  workflow_dispatch:
   schedule:
-  - cron: '42 7 * * *'
+  - cron: '42 */6 * * *'
 
 jobs:
   main:
@@ -17,5 +18,5 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: build and push
+      - name: Build and push
         run: make push-cron
