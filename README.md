@@ -18,7 +18,7 @@ _dev build_
 docker run --rm \
   -u $(id -u):$(id -g) \
   -v $(pwd):$(pwd) \
-  -w $(pwd) sndsgd/postcss \
+  -w $(pwd) ghcr.io/sndsgd/postcss \
   --use autoprefixer \
   --output output.css \
   input.css
@@ -30,7 +30,7 @@ docker run --rm \
   -u $(id -u):$(id -g) \
   -v "$(pwd)":"$(pwd)" \
   -w "$(pwd)" \
-  sndsgd/postcss \
+  ghcr.io/sndsgd/postcss \
   --no-map \
   --use autoprefixer \
   --use cssnano \
